@@ -30,14 +30,16 @@ public class Registrant implements Watcher {
             try {
                 zooKeeper = new ZooKeeper("127.0.0.1:2181", 1000, this);
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new ZkException("zookeeper connection failed.", e);
             }
             initBarrier.reset();
             try {
                 initBarrier.await();
                 inited = true;
-            } catch (InterruptedException | BrokenBarrierException e) {
-                e.printStackTrace(); // TODO exception handle
+            } catch (InterruptedException e) {
+                throw new ZkException("zookeeper sync interrupted.", e);
+            } catch (BrokenBarrierException e) {
+                throw new ZkException("zookeeper sync exception", e);
             }
         }
     }
@@ -49,21 +51,19 @@ public class Registrant implements Watcher {
             return zooKeeper.getChildren(key, router);
         } catch (KeeperException.NoNodeException e) {
             throw new ServiceException("available service not found.");
-        } catch (InterruptedException e) {
-            e.printStackTrace(); // TODO exception handle
-        } catch (KeeperException e) {
+        } catch (InterruptedException | KeeperException e) {
             throw new ZkException(e);
         }
-
-        return null;
     }
 
     @Override
     public void process(WatchedEvent watchedEvent) {
         try {
             initBarrier.await();
-        } catch (InterruptedException | BrokenBarrierException e) {
-            e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new ZkException("zookeeper sync interrupted.", e);
+        } catch (BrokenBarrierException e) {
+            throw new ZkException("zookeeper sync exception", e);
         }
     }
 

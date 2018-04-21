@@ -1,5 +1,8 @@
 package com.rdc.loadbalance;
 
+import com.rdc.exception.ServiceException;
+
+import javax.xml.ws.Service;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,7 +18,7 @@ public class RoundRobin implements LoadBalanceStrategy {
 
     public RoundRobin(Collection<String> availableAddresses) {
         if (availableAddresses == null || availableAddresses.isEmpty()) {
-            throw new RuntimeException("no address available.");
+            throw new ServiceException("no address available.");
         }
         this.availableAddresses = new String[availableAddresses.size()];
         int i = 0;
