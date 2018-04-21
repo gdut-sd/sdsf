@@ -2,6 +2,7 @@ package com.rdc.bootstrap;
 
 import com.rdc.config.ProducerAppConfiguration;
 import com.rdc.encode.LengthFieldBasedEncoder;
+import com.rdc.exception.ConnectionException;
 import com.rdc.handler.RpcCallHandler;
 import com.rdc.serialization.JbossMarshallingFactory;
 import io.netty.bootstrap.ServerBootstrap;
@@ -86,7 +87,7 @@ public class ProducerApp implements Runnable {
                     .closeFuture()
                     .sync();
         } catch (InterruptedException e) {
-            // TODO exception handle
+            throw new ConnectionException("provider binding port was interrupted.", e);
         }
     }
 

@@ -4,6 +4,7 @@ import com.rdc.bootstrap.Router;
 import com.rdc.bootstrap.Sender;
 import com.rdc.config.ConsumerAppConfiguration;
 import com.rdc.encode.LengthFieldBasedEncoder;
+import com.rdc.exception.ConnectionException;
 import com.rdc.handler.RpcCallHandler;
 import com.rdc.serialization.JbossMarshallingFactory;
 import io.netty.bootstrap.Bootstrap;
@@ -105,10 +106,8 @@ public class ConnectionCenter {
             activeSenders.put(key, sender);
             return sender;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new ConnectionException("connection to concrete service provider was interrupted.", e);
         }
-
-        return null;
     }
 
     public void completeResult(String socketAddress, long rpcCallId, boolean success, Object result) {

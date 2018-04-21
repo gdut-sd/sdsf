@@ -3,14 +3,10 @@ package com.rdc.bootstrap;
 import com.rdc.UserServiceImpl;
 import com.rdc.exception.ZkException;
 import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.Stat;
 
-import javax.swing.plaf.TableHeaderUI;
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +31,7 @@ public class Registrant implements Watcher {
     // value : producer implementation
     private Map<String, Object> producers;
 
-    private volatile boolean inited = false;
+    private volatile boolean initialized = false;
 
     public Registrant(int port) {
         this.port = port;
@@ -43,14 +39,14 @@ public class Registrant implements Watcher {
         try {
             host = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            e.printStackTrace(); // TODO exception handle
+            throw new RuntimeException("no local host available.", e);
         }
     }
 
     public Registrant register(String serviceName, String version, Object producerImpl) {
         final String nodeName = serviceName + ":" + version;
         producers.put(nodeName, producerImpl);
-        if (inited) {
+        if (initialized) {
             addProducerNode(nodeName);
         }
         return this;
@@ -85,11 +81,18 @@ public class Registrant implements Watcher {
     }
 
     public synchronized void init() {
-        if (!inited) {
+        if (!initialized) {
             try {
                 zooKeeper = new ZooKeeper("127.0.0.1:2181", 1000, this);
                 initBarrier.reset();
-                initBarrier.await();
+
+                try {
+                    initBarrier.await();
+                } catch (InterruptedException e) {
+                    throw new ZkException("zookeeper sync interrupted.", e);
+                } catch (BrokenBarrierException e) {
+                    throw new ZkException("zookeeper sync exception", e);
+                }
 
                 // add nodes on zk
                 if (zooKeeper.exists("/sdsf", false) == null) {
@@ -99,11 +102,11 @@ public class Registrant implements Watcher {
                     addProducerNode(entry.getKey());
                 }
 
-                inited = true;
-            } catch (IOException | KeeperException e) {
+                initialized = true;
+            } catch (KeeperException | InterruptedException e) {
                 throw new ZkException(e);
-            } catch (InterruptedException | BrokenBarrierException e) {
-                e.printStackTrace(); // TODO exception handle
+            } catch (IOException e) {
+                throw new ZkException("zookeeper connection failed.", e);
             }
         }
     }
@@ -112,13 +115,14 @@ public class Registrant implements Watcher {
     public void process(WatchedEvent watchedEvent) {
         try {
             initBarrier.await();
-        } catch (InterruptedException | BrokenBarrierException e) {
-            e.printStackTrace(); // TODO exception handle
+        } catch (InterruptedException e) {
+            throw new ZkException("zookeeper sync interrupted.", e);
+        } catch (BrokenBarrierException e) {
+            throw new ZkException("zookeeper sync exception", e);
         }
     }
 
     public static void main(String[] args) throws Exception {
-        //new Registrant().run();
         Registrant registrant = new Registrant(8080);
         registrant.register("com.rdc.UserService", "0.0.1", new UserServiceImpl());
         registrant.init();
