@@ -1,6 +1,5 @@
 package com.rdc.connection;
 
-import com.rdc.bootstrap.Router;
 import com.rdc.bootstrap.Sender;
 import com.rdc.config.ConsumerAppConfiguration;
 import com.rdc.encode.LengthFieldBasedEncoder;
@@ -102,7 +101,7 @@ public class ConnectionCenter {
                     disconnect(host, port);
                 }
             });
-            sender = new Sender(this, c);
+            sender = new Sender(c);
             activeSenders.put(key, sender);
             return sender;
         } catch (InterruptedException e) {
@@ -115,9 +114,5 @@ public class ConnectionCenter {
         if (sender != null) {
             sender.completeResponse(rpcCallId, success, result);
         }
-    }
-
-    public Router newRouter() {
-        return new Router(this);
     }
 }

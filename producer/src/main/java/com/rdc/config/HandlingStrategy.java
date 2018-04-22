@@ -6,5 +6,5 @@ package com.rdc.config;
  */
 public enum HandlingStrategy {
     SYNC,
-    ASYNC;
+    ASYNC
 }

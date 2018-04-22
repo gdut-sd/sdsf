@@ -14,6 +14,10 @@ public class ConsumerAppConfiguration {
 
     private ProxyStrategy proxyStrategy = ProxyStrategy.JDK_DEFAULT;
 
+    private String registrantHost = "127.0.0.1";
+
+    private int registrantPort = 2181;
+
     public int getWorkerGroupThreads() {
         return workerGroupThreads;
     }
@@ -41,6 +45,30 @@ public class ConsumerAppConfiguration {
 
     public ConsumerAppConfiguration setProxyStrategy(ProxyStrategy proxyStrategy) {
         this.proxyStrategy = proxyStrategy;
+        return this;
+    }
+
+    public String getRegistrantHost() {
+        return registrantHost;
+    }
+
+    public ConsumerAppConfiguration setRegistrantHost(String registrantHost) {
+        if (registrantHost == null || !registrantHost.matches("([12]?[0-9]?[0-9])\\.([12]?[0-9]?[0-9])\\.([12]?[0-9]?[0-9])\\.([12]?[0-9]?[0-9])")) {
+            throw new IllegalArgumentException("invalid registrant host.");
+        }
+        this.registrantHost = registrantHost;
+        return this;
+    }
+
+    public int getRegistrantPort() {
+        return registrantPort;
+    }
+
+    public ConsumerAppConfiguration setRegistrantPort(int registrantPort) {
+        if (registrantPort <= 0 || registrantPort > 65535) {
+            throw new IllegalArgumentException("port should be within 1 and 65535, current : " + registrantPort);
+        }
+        this.registrantPort = registrantPort;
         return this;
     }
 }

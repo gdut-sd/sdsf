@@ -1,5 +1,6 @@
 package com.rdc.config;
 
+import com.rdc.bootstrap.ProducerApp;
 import com.rdc.serialization.SerializationStrategy;
 
 /**
@@ -16,6 +17,10 @@ public class ProducerAppConfiguration {
     private SerializationStrategy serializationStrategy = SerializationStrategy.JAVA_DEFAULT;
 
     private HandlingStrategy handlingStrategy = HandlingStrategy.SYNC;
+
+    private String registrantHost = "127.0.0.1";
+
+    private int registrantPort = 2181;
 
     public int getPort() {
         return port;
@@ -74,6 +79,30 @@ public class ProducerAppConfiguration {
             throw new IllegalArgumentException("handling strategy should not be null");
         }
         this.handlingStrategy = handlingStrategy;
+        return this;
+    }
+
+    public String getRegistrantHost() {
+        return registrantHost;
+    }
+
+    public ProducerAppConfiguration setRegistrantHost(String registrantHost) {
+        if (registrantHost == null || !registrantHost.matches("([12]?[0-9]?[0-9])\\.([12]?[0-9]?[0-9])\\.([12]?[0-9]?[0-9])\\.([12]?[0-9]?[0-9])")) {
+            throw new IllegalArgumentException("invalid registrant host.");
+        }
+        this.registrantHost = registrantHost;
+        return this;
+    }
+
+    public int getRegistrantPort() {
+        return registrantPort;
+    }
+
+    public ProducerAppConfiguration setRegistrantPort(int registrantPort) {
+        if (registrantPort <= 0 || registrantPort > 65535) {
+            throw new IllegalArgumentException("port should be within 1 and 65535, current : " + registrantPort);
+        }
+        this.registrantPort = registrantPort;
         return this;
     }
 }

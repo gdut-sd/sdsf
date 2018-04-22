@@ -2,14 +2,10 @@ package com.rdc.bootstrap;
 
 import com.rdc.exception.ServiceException;
 import com.rdc.exception.ZkException;
-import com.rdc.loadbalance.LoadBalanceStrategy;
-import com.rdc.loadbalance.RoundRobin;
 import org.apache.zookeeper.*;
 
-import javax.xml.ws.Service;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
@@ -23,19 +19,23 @@ public class Registrant implements Watcher {
 
     private volatile ZooKeeper zooKeeper;
 
-    private volatile boolean inited = false;
+    private volatile boolean initialized = false;
 
-    public synchronized void init() {
-        if (!inited) {
+    public Registrant(String zkHost, int zkPort) {
+        init(zkHost, zkPort);
+    }
+
+    public synchronized void init(String zkHost, int zkPort) {
+        if (!initialized) {
             try {
-                zooKeeper = new ZooKeeper("127.0.0.1:2181", 1000, this);
+                zooKeeper = new ZooKeeper(zkHost + ":" + zkPort, 1000, this);
             } catch (IOException e) {
                 throw new ZkException("zookeeper connection failed.", e);
             }
             initBarrier.reset();
             try {
                 initBarrier.await();
-                inited = true;
+                initialized = true;
             } catch (InterruptedException e) {
                 throw new ZkException("zookeeper sync interrupted.", e);
             } catch (BrokenBarrierException e) {
@@ -65,12 +65,5 @@ public class Registrant implements Watcher {
         } catch (BrokenBarrierException e) {
             throw new ZkException("zookeeper sync exception", e);
         }
-    }
-
-    public static void main(String[] args) throws InterruptedException, IOException, BrokenBarrierException, KeeperException {
-        Registrant registrant = new Registrant();
-        registrant.init();
-
-        //System.out.println(registrant.getAvailableAddress("com.rdc.UserService", "0.0.1"));
     }
 }
