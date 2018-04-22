@@ -2,13 +2,14 @@ package com.rdc.proxy;
 
 import com.rdc.bootstrap.Registrant;
 import com.rdc.connection.ConnectionCenter;
+import com.rdc.loadbalance.LoadBalanceStrategy;
 
 /**
  * @author SD
  */
 public class ProxyCreator {
 
-    public static <T> T getProxy(Class<T> serviceClass, String version, ProxyStrategy proxyStrategy, ConnectionCenter connectionCenter, Registrant registrant) {
+    public static <T> T getProxy(Class<T> serviceClass, String version, ProxyStrategy proxyStrategy, LoadBalanceStrategy loadBalanceStrategy, ConnectionCenter connectionCenter, Registrant registrant) {
         if (serviceClass == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
@@ -20,7 +21,7 @@ public class ProxyCreator {
         }
 
         if (proxyStrategy == ProxyStrategy.JDK_DEFAULT) {
-            return new JdkDynamicProxyInvoker<>(serviceClass, version, connectionCenter, registrant).get();
+            return new JdkDynamicProxyInvoker<>(serviceClass, version, connectionCenter, registrant, loadBalanceStrategy).get();
         }
 
         return null;
