@@ -17,19 +17,19 @@ public class RpcCallRequest implements Serializable {
 
     private String version;
 
-    private Class<?>[] paramterTypes;
+    private Class<?>[] parameterTypes;
 
     private Object[] args;
 
     public RpcCallRequest() {
     }
 
-    public RpcCallRequest(long rpcCallId, String interfaceName, String methodName, String version, Class<?>[] paramterTypes, Object[] args) {
+    public RpcCallRequest(long rpcCallId, String interfaceName, String methodName, String version, Class<?>[] parameterTypes, Object[] args) {
         this.rpcCallId = rpcCallId;
         this.interfaceName = interfaceName;
         this.methodName = methodName;
         this.version = version;
-        this.paramterTypes = paramterTypes;
+        this.parameterTypes = parameterTypes;
         this.args = args;
     }
 
@@ -65,12 +65,12 @@ public class RpcCallRequest implements Serializable {
         this.version = version;
     }
 
-    public Class<?>[] getParamterTypes() {
-        return paramterTypes;
+    public Class<?>[] getParameterTypes() {
+        return parameterTypes;
     }
 
-    public void setParamterTypes(Class<?>[] paramterTypes) {
-        this.paramterTypes = paramterTypes;
+    public void setParameterTypes(Class<?>[] parameterTypes) {
+        this.parameterTypes = parameterTypes;
     }
 
     public Object[] getArgs() {

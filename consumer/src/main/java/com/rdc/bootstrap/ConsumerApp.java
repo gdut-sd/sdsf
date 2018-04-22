@@ -20,12 +20,21 @@ public class ConsumerApp {
     }
 
     public ConsumerApp(ConsumerAppConfiguration config) {
+        if (config == null) {
+            throw new IllegalArgumentException("configuration should not be null.");
+        }
         this.config = config;
         connectionCenter = new ConnectionCenter(config);
         registrant = new Registrant(config.getRegistrantHost(), config.getRegistrantPort());
     }
 
     public <T> T getService(Class<T> serviceClazz, String version) {
+        if (serviceClazz == null) {
+            throw new IllegalArgumentException("service class should not be null.");
+        }
+        if (version == null) {
+            throw new IllegalArgumentException("version should not be null.");
+        }
         return ProxyCreator.getProxy(serviceClazz, version, config.getProxyStrategy(), connectionCenter, registrant);
     }
 }

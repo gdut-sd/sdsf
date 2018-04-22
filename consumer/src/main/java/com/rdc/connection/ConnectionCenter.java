@@ -34,6 +34,9 @@ public class ConnectionCenter {
     private Bootstrap bootstrap;
 
     public ConnectionCenter(ConsumerAppConfiguration config) {
+        if (config == null) {
+            throw new IllegalArgumentException("configuration should not be null");
+        }
         this.config = config;
         init();
     }
@@ -72,6 +75,13 @@ public class ConnectionCenter {
     }
 
     public void disconnect(String host, int port) {
+        if (host == null) {
+            throw new IllegalArgumentException("host should not be null.");
+        }
+        if (port <= 0 || port > 65535) {
+            throw new IllegalArgumentException("port should be within 1 and 65535, current : " + port);
+        }
+
         String key = host + ":" + port;
         disconnect(key);
     }
@@ -84,6 +94,13 @@ public class ConnectionCenter {
     }
 
     public Sender connect(String host, int port) {
+        if (host == null) {
+            throw new IllegalArgumentException("host should not be null.");
+        }
+        if (port <= 0 || port > 65535) {
+            throw new IllegalArgumentException("port should be within 1 and 65535, current : " + port);
+        }
+
         String key = host + ":" + port;
         Sender sender = activeSenders.get(key);
         if (sender != null) {

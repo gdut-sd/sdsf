@@ -22,10 +22,16 @@ public class Registrant implements Watcher {
     private volatile boolean initialized = false;
 
     public Registrant(String zkHost, int zkPort) {
+        if (zkHost == null) {
+            throw new IllegalArgumentException("zookeeper host should not be null.");
+        }
+        if (zkPort <= 0 || zkPort > 65535) {
+            throw new IllegalArgumentException("port should be within 1 and 65535, current : " + zkPort);
+        }
         init(zkHost, zkPort);
     }
 
-    public synchronized void init(String zkHost, int zkPort) {
+    private synchronized void init(String zkHost, int zkPort) {
         if (!initialized) {
             try {
                 zooKeeper = new ZooKeeper(zkHost + ":" + zkPort, 1000, this);
@@ -44,7 +50,7 @@ public class Registrant implements Watcher {
         }
     }
 
-    public List<String> getAvailableAddress(String service, String version, Router router) {
+    List<String> getAvailableAddress(String service, String version, Router router) {
         final String key = "/sdsf/" + service + ":" + version + "/producer";
 
         try {
