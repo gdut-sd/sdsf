@@ -3,6 +3,7 @@ package com.rdc.proxy;
 import com.rdc.bootstrap.Registrant;
 import com.rdc.bootstrap.Router;
 import com.rdc.connection.ConnectionCenter;
+import com.rdc.loadbalance.LoadBalanceStrategy;
 import com.rdc.model.RpcCallRequest;
 import com.rdc.model.RpcMessage;
 
@@ -28,7 +29,7 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
     private Router router;
 
     @SuppressWarnings("unchecked")
-    public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant) {
+    public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant, LoadBalanceStrategy loadBalanceStrategy) {
         if (ic == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
@@ -43,7 +44,7 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
         this.version = version;
         Class<I>[] ics = new Class[]{ic};
         proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), ics, this);
-        router = new Router(connectionCenter, registrant);
+        router = new Router(connectionCenter, registrant, loadBalanceStrategy);
     }
 
     @Override

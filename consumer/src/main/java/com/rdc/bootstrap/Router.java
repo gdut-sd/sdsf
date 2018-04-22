@@ -1,10 +1,8 @@
 package com.rdc.bootstrap;
 
 import com.rdc.connection.ConnectionCenter;
-import com.rdc.loadbalance.LoadBalanceStrategy;
-import com.rdc.loadbalance.RoundRobin;
+import com.rdc.loadbalance.*;
 import com.rdc.model.RpcMessage;
-import com.sun.istack.internal.NotNull;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
@@ -17,13 +15,15 @@ import java.util.concurrent.Future;
  * @since 2018/4/15
  */
 public class Router implements Watcher {
-    private Map<String, LoadBalanceStrategy> availableAddresses = new ConcurrentHashMap<>();
+    private Map<String, LoadBalance> availableAddresses = new ConcurrentHashMap<>();
 
     private ConnectionCenter connectionCenter;
 
     private Registrant registrant;
 
-    public Router(ConnectionCenter connectionCenter, Registrant registrant) {
+    private LoadBalanceStrategy loadBalanceStrategy = LoadBalanceStrategy.ROUND_ROBIN;
+
+    public Router(ConnectionCenter connectionCenter, Registrant registrant, LoadBalanceStrategy loadBalanceStrategy) {
         if (connectionCenter == null) {
             throw new IllegalArgumentException("connection center should not be null.");
         }
@@ -33,13 +33,30 @@ public class Router implements Watcher {
 
         this.connectionCenter = connectionCenter;
         this.registrant = registrant;
+        if (loadBalanceStrategy != null) {
+            this.loadBalanceStrategy = loadBalanceStrategy;
+        }
     }
 
     public Future<Object> send(String service, String version, RpcMessage message) {
         final String key = service + ":" + version;
-        LoadBalanceStrategy lb = availableAddresses.get(key);
+        LoadBalance lb = availableAddresses.get(key);
         if (lb == null) {
-            lb = new RoundRobin(registrant.getAvailableAddress(service, version, this));
+            switch (loadBalanceStrategy) {
+                case RANDOM:
+                    lb = new RandomSelect(registrant.getAvailableAddress(service, version, this));
+                    break;
+                case ROUND_ROBIN:
+                    lb = new RoundRobin(registrant.getAvailableAddress(service, version, this));
+                    break;
+                case CONSISTENT_HASH:
+                    lb = new ConsistentHash(
+                            message::toString,
+                            Object::hashCode,
+                            registrant.getAvailableAddress(service, version, this)
+                    );
+                    break;
+            }
             availableAddresses.putIfAbsent(key, lb);
         }
         String[] s = lb.next().split(":");

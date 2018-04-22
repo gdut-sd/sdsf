@@ -1,5 +1,6 @@
 package com.rdc.config;
 
+import com.rdc.loadbalance.LoadBalanceStrategy;
 import com.rdc.proxy.ProxyStrategy;
 import com.rdc.serialization.SerializationStrategy;
 
@@ -17,6 +18,8 @@ public class ConsumerAppConfiguration {
     private String registrantHost = "127.0.0.1";
 
     private int registrantPort = 2181;
+
+    private LoadBalanceStrategy loadBalanceStrategy = LoadBalanceStrategy.ROUND_ROBIN;
 
     public int getWorkerGroupThreads() {
         return workerGroupThreads;
@@ -69,6 +72,18 @@ public class ConsumerAppConfiguration {
             throw new IllegalArgumentException("port should be within 1 and 65535, current : " + registrantPort);
         }
         this.registrantPort = registrantPort;
+        return this;
+    }
+
+    public LoadBalanceStrategy getLoadBalanceStrategy() {
+        return loadBalanceStrategy;
+    }
+
+    public ConsumerAppConfiguration setLoadBalanceStrategy(LoadBalanceStrategy loadBalanceStrategy) {
+        if (loadBalanceStrategy == null) {
+            throw new IllegalArgumentException("load balance strategy should not be null.");
+        }
+        this.loadBalanceStrategy = loadBalanceStrategy;
         return this;
     }
 }
