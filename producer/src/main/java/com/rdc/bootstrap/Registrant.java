@@ -1,5 +1,6 @@
 package com.rdc.bootstrap;
 
+import com.rdc.UserService;
 import com.rdc.UserServiceImpl;
 import com.rdc.exception.ZkException;
 import org.apache.zookeeper.*;
@@ -34,6 +35,10 @@ public class Registrant implements Watcher {
     private volatile boolean initialized = false;
 
     public Registrant(int port) {
+        if (port <= 0 || port > 65535) {
+            throw new IllegalArgumentException("port should be within 1 and 65535, current : " + port);
+        }
+
         this.port = port;
         producers = new ConcurrentHashMap<>();
         try {
@@ -43,9 +48,19 @@ public class Registrant implements Watcher {
         }
     }
 
-    public Registrant register(String serviceName, String version, Object producerImpl) {
-        final String nodeName = serviceName + ":" + version;
-        producers.put(nodeName, producerImpl);
+    public Registrant register(Class<?> serviceClass, String version, Object serviceImpl) {
+        if (serviceClass == null) {
+            throw new IllegalArgumentException("service class should not be null.");
+        }
+        if (version == null) {
+            throw new IllegalArgumentException("version should not be null.");
+        }
+        if (serviceImpl == null) {
+            throw new IllegalArgumentException("service implementation should not be null.");
+        }
+
+        final String nodeName = serviceClass.getName() + ":" + version;
+        producers.put(nodeName, serviceImpl);
         if (initialized) {
             addProducerNode(nodeName);
         }
@@ -124,7 +139,7 @@ public class Registrant implements Watcher {
 
     public static void main(String[] args) throws Exception {
         Registrant registrant = new Registrant(8080);
-        registrant.register("com.rdc.UserService", "0.0.1", new UserServiceImpl());
+        registrant.register(UserService.class, "0.0.1", new UserServiceImpl());
         registrant.init();
 
         Thread.sleep(10000000);

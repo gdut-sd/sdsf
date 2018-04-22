@@ -32,7 +32,7 @@ public class RpcCallHandler extends SimpleChannelInboundHandler<RpcMessage> {
         Class producerClass = producer.getClass();
         try {
             @SuppressWarnings("unchecked")
-            Method m = producerClass.getDeclaredMethod(request.getMethodName(), request.getParamterTypes());
+            Method m = producerClass.getDeclaredMethod(request.getMethodName(), request.getParameterTypes());
             m.invoke(producer, request.getArgs());
             rpcMessage.setSuccess(true);
             rpcMessage.setBody(m.invoke(producer, request.getArgs()));

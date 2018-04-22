@@ -92,7 +92,17 @@ public class ProducerApp implements Runnable {
     }
 
     public <T> ProducerApp register(Class<T> serviceClass, String version, T serviceImpl) {
-        registrant.register(serviceClass.getName(), version, serviceImpl);
+        if (serviceClass == null) {
+            throw new IllegalArgumentException("service class should not be null.");
+        }
+        if (version == null) {
+            throw new IllegalArgumentException("version should not be null.");
+        }
+        if (serviceImpl == null) {
+            throw new IllegalArgumentException("service implementation should not be null.");
+        }
+
+        registrant.register(serviceClass, version, serviceImpl);
         return this;
     }
 }

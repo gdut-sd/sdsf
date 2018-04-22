@@ -1,4 +1,4 @@
-package com.rdc.invoker;
+package com.rdc.proxy;
 
 import com.rdc.bootstrap.Registrant;
 import com.rdc.bootstrap.Router;
@@ -29,6 +29,16 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
 
     @SuppressWarnings("unchecked")
     public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant) {
+        if (ic == null) {
+            throw new IllegalArgumentException("service class should not be null.");
+        }
+        if (connectionCenter == null) {
+            throw new IllegalArgumentException("connection center should not be null.");
+        }
+        if (registrant == null) {
+            throw new IllegalArgumentException("registrant should not be null.");
+        }
+
         this.ic = ic;
         this.version = version;
         Class<I>[] ics = new Class[]{ic};
@@ -56,7 +66,7 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
         RpcCallRequest request = new RpcCallRequest();
         request.setInterfaceName(ic.getName());
         request.setMethodName(method.getName());
-        request.setParamterTypes(method.getParameterTypes());
+        request.setParameterTypes(method.getParameterTypes());
         request.setArgs(args);
         request.setVersion(version);
         request.setRpcCallId(rpcMessage.getRpcCallId());
