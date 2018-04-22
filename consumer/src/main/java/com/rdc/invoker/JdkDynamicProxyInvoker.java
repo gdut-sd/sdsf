@@ -1,19 +1,17 @@
 package com.rdc.invoker;
 
+import com.rdc.bootstrap.Registrant;
 import com.rdc.bootstrap.Router;
 import com.rdc.connection.ConnectionCenter;
 import com.rdc.model.RpcCallRequest;
 import com.rdc.model.RpcMessage;
-import io.netty.channel.Channel;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -21,20 +19,21 @@ import java.util.function.Supplier;
  */
 public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I> {
 
-    private final ConnectionCenter connectionCenter;
-
     private Class<I> ic;
 
     private String version;
 
     private I proxyInstance;
 
-    public JdkDynamicProxyInvoker(ConnectionCenter connectionCenter, Class<I> ic, String version) {
-        this.connectionCenter = connectionCenter;
+    private Router router;
+
+    @SuppressWarnings("unchecked")
+    public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant) {
         this.ic = ic;
         this.version = version;
         Class<I>[] ics = new Class[]{ic};
         proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), ics, this);
+        router = new Router(connectionCenter, registrant);
     }
 
     @Override
@@ -59,13 +58,12 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
         request.setMethodName(method.getName());
         request.setParamterTypes(method.getParameterTypes());
         request.setArgs(args);
-        request.setVersion(version); // FIXME set version
+        request.setVersion(version);
         request.setRpcCallId(rpcMessage.getRpcCallId());
 
         rpcMessage.setBody(request);
 
         // 2. send rpc request and wait for result(Future#get)
-        Router router = connectionCenter.newRouter();
         Future<Object> result = router.send(request.getInterfaceName(), request.getVersion(), rpcMessage);
 
         // 3. return result

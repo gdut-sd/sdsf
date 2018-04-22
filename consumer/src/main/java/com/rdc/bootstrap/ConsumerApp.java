@@ -13,6 +13,8 @@ public class ConsumerApp {
 
     private ConnectionCenter connectionCenter;
 
+    private Registrant registrant;
+
     public ConsumerApp() {
         this(new ConsumerAppConfiguration());
     }
@@ -20,10 +22,10 @@ public class ConsumerApp {
     public ConsumerApp(ConsumerAppConfiguration config) {
         this.config = config;
         connectionCenter = new ConnectionCenter(config);
-        connectionCenter.init();
+        registrant = new Registrant(config.getRegistrantHost(), config.getRegistrantPort());
     }
 
     public <T> T getService(Class<T> serviceClazz, String version) {
-        return ProxyCreator.getProxy(serviceClazz, version, config.getProxyStrategy(), connectionCenter);
+        return ProxyCreator.getProxy(serviceClazz, version, config.getProxyStrategy(), connectionCenter, registrant);
     }
 }

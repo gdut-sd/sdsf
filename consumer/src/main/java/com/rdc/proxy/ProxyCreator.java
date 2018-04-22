@@ -1,5 +1,6 @@
 package com.rdc.proxy;
 
+import com.rdc.bootstrap.Registrant;
 import com.rdc.connection.ConnectionCenter;
 import com.rdc.invoker.JdkDynamicProxyInvoker;
 
@@ -8,9 +9,9 @@ import com.rdc.invoker.JdkDynamicProxyInvoker;
  */
 public class ProxyCreator {
 
-    public static <T> T getProxy(Class<T> interfaceClazz, String version, ProxyStrategy proxyStrategy, ConnectionCenter connectionCenter) {
+    public static <T> T getProxy(Class<T> interfaceClazz, String version, ProxyStrategy proxyStrategy, ConnectionCenter connectionCenter, Registrant registrant) {
         if (proxyStrategy == ProxyStrategy.JDK_DEFAULT) {
-            return new JdkDynamicProxyInvoker<>(connectionCenter, interfaceClazz, version).get();
+            return new JdkDynamicProxyInvoker<>(interfaceClazz, version, connectionCenter, registrant).get();
         }
 
         return null;

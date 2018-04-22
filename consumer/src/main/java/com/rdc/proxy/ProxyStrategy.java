@@ -6,5 +6,5 @@ package com.rdc.proxy;
  */
 public enum ProxyStrategy {
     JDK_DEFAULT,
-    CGLIB;
+    CGLIB
 }

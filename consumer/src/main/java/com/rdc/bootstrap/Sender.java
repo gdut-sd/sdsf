@@ -14,12 +14,9 @@ import java.util.concurrent.Future;
  */
 public class Sender {
 
-    private ConnectionCenter connectionCenter;
-
     private Channel channel;
 
-    public Sender(ConnectionCenter connectionCenter, Channel channel) {
-        this.connectionCenter = connectionCenter;
+    public Sender(Channel channel) {
         this.channel = channel;
     }
 

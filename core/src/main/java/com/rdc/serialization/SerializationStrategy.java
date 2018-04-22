@@ -6,5 +6,5 @@ package com.rdc.serialization;
  */
 public enum SerializationStrategy {
     JAVA_DEFAULT,
-    JBOSS_MARSHALLING;
+    JBOSS_MARSHALLING
 }

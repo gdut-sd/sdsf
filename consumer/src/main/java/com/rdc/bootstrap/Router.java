@@ -4,6 +4,7 @@ import com.rdc.connection.ConnectionCenter;
 import com.rdc.loadbalance.LoadBalanceStrategy;
 import com.rdc.loadbalance.RoundRobin;
 import com.rdc.model.RpcMessage;
+import com.sun.istack.internal.NotNull;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
@@ -16,19 +17,22 @@ import java.util.concurrent.Future;
  * @since 2018/4/15
  */
 public class Router implements Watcher {
-    private static Registrant registrant;
-
-    static {
-        registrant = new Registrant();
-        registrant.init();
-    }
-
     private Map<String, LoadBalanceStrategy> availableAddresses = new ConcurrentHashMap<>();
 
     private ConnectionCenter connectionCenter;
 
-    public Router(ConnectionCenter connectionCenter) {
+    private Registrant registrant;
+
+    public Router(ConnectionCenter connectionCenter, Registrant registrant) {
+        if (connectionCenter == null) {
+            throw new IllegalArgumentException("connection center should not be null.");
+        }
+        if (registrant == null) {
+            throw new IllegalArgumentException("registrant should not be null.");
+        }
+
         this.connectionCenter = connectionCenter;
+        this.registrant = registrant;
     }
 
     public Future<Object> send(String service, String version, RpcMessage message) {

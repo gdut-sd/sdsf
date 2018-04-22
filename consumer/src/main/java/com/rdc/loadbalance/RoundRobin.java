@@ -2,7 +2,6 @@ package com.rdc.loadbalance;
 
 import com.rdc.exception.ServiceException;
 
-import javax.xml.ws.Service;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
