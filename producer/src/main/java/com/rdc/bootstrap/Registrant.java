@@ -2,6 +2,7 @@ package com.rdc.bootstrap;
 
 import com.rdc.UserService;
 import com.rdc.UserServiceImpl;
+import com.rdc.config.HandlingStrategy;
 import com.rdc.exception.ZkException;
 import org.apache.zookeeper.*;
 
@@ -28,9 +29,9 @@ public class Registrant implements Watcher {
 
     private CyclicBarrier initBarrier = new CyclicBarrier(2);
 
-    // key : service name + version
-    // value : producer implementation
-    private Map<String, Object> producers;
+    // key : service name + ":" + version
+    // value : producer wrapper
+    private Map<String, ProducerWrapper> producers;
 
     private volatile boolean initialized = false;
 
@@ -48,7 +49,7 @@ public class Registrant implements Watcher {
         }
     }
 
-    public Registrant register(Class<?> serviceClass, String version, Object serviceImpl) {
+    public Registrant register(Class<?> serviceClass, String version, Object serviceImpl, HandlingStrategy handlingStrategy) {
         if (serviceClass == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
@@ -58,9 +59,12 @@ public class Registrant implements Watcher {
         if (serviceImpl == null) {
             throw new IllegalArgumentException("service implementation should not be null.");
         }
+        if (handlingStrategy == null) {
+            handlingStrategy = HandlingStrategy.SYNC;
+        }
 
         final String nodeName = serviceClass.getName() + ":" + version;
-        producers.put(nodeName, serviceImpl);
+        producers.put(nodeName, new ProducerWrapper(handlingStrategy, serviceImpl));
         if (initialized) {
             addProducerNode(nodeName);
         }
@@ -92,7 +96,19 @@ public class Registrant implements Watcher {
     }
 
     public Object getProducer(String serviceName, String version) {
-        return producers.get(serviceName + ":" + version);
+        ProducerWrapper wrapper = producers.get(serviceName + ":" + version);
+        if (wrapper != null) {
+            return wrapper.getProducer();
+        }
+        return null;
+    }
+
+    public HandlingStrategy getProducerHandlingStrategy(String serviceName, String version) {
+        ProducerWrapper wrapper = producers.get(serviceName + ":" + version);
+        if (wrapper != null) {
+            return wrapper.getHandlingStrategy();
+        }
+        return null;
     }
 
     public synchronized void init() {
@@ -113,8 +129,8 @@ public class Registrant implements Watcher {
                 if (zooKeeper.exists("/sdsf", false) == null) {
                     zooKeeper.create("/sdsf", DUMMY_CONTENT, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
                 }
-                for (Map.Entry<String, Object> entry : producers.entrySet()) {
-                    addProducerNode(entry.getKey());
+                for (String k : producers.keySet()) {
+                    addProducerNode(k);
                 }
 
                 initialized = true;
@@ -136,12 +152,22 @@ public class Registrant implements Watcher {
             throw new ZkException("zookeeper sync exception", e);
         }
     }
+}
 
-    public static void main(String[] args) throws Exception {
-        Registrant registrant = new Registrant(8080);
-        registrant.register(UserService.class, "0.0.1", new UserServiceImpl());
-        registrant.init();
+class ProducerWrapper {
+    HandlingStrategy handlingStrategy;
+    Object producer;
 
-        Thread.sleep(10000000);
+    public ProducerWrapper(HandlingStrategy handlingStrategy, Object producer) {
+        this.handlingStrategy = handlingStrategy;
+        this.producer = producer;
+    }
+
+    public HandlingStrategy getHandlingStrategy() {
+        return handlingStrategy;
+    }
+
+    public Object getProducer() {
+        return producer;
     }
 }
