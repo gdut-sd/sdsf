@@ -22,6 +22,8 @@ public class ProducerAppConfiguration {
 
     private int registrantPort = 2181;
 
+    private int asyncPoolSize = 4;
+
     public int getPort() {
         return port;
     }
@@ -103,6 +105,18 @@ public class ProducerAppConfiguration {
             throw new IllegalArgumentException("port should be within 1 and 65535, current : " + registrantPort);
         }
         this.registrantPort = registrantPort;
+        return this;
+    }
+
+    public int getAsyncPoolSize() {
+        return asyncPoolSize;
+    }
+
+    public ProducerAppConfiguration setAsyncPoolSize(int asyncPoolSize) {
+        if (asyncPoolSize <= 0) {
+            throw new IllegalArgumentException("async pool size should not be negative.");
+        }
+        this.asyncPoolSize = asyncPoolSize;
         return this;
     }
 }

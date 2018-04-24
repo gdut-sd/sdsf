@@ -1,5 +1,6 @@
 package com.rdc.bootstrap;
 
+import com.rdc.config.HandlingStrategy;
 import com.rdc.config.ProducerAppConfiguration;
 import com.rdc.encode.LengthFieldBasedEncoder;
 import com.rdc.exception.ConnectionException;
@@ -16,6 +17,9 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * @author SD
  * @since 2018/4/21
@@ -28,6 +32,8 @@ public class ProducerApp implements Runnable {
     private NioEventLoopGroup workerGroup;
 
     private Registrant registrant;
+
+    private ExecutorService asyncPool;
 
     public ProducerApp() {
         this(new ProducerAppConfiguration());
@@ -42,6 +48,7 @@ public class ProducerApp implements Runnable {
         workerGroup = new NioEventLoopGroup(config.getWorkerGroupThreads());
 
         registrant = new Registrant(config.getPort());
+        asyncPool = Executors.newFixedThreadPool(config.getAsyncPoolSize());
     }
 
     @Override
@@ -72,7 +79,7 @@ public class ProducerApp implements Runnable {
                             break;
                     }
 
-                    channel.pipeline().addLast(new RpcCallHandler(registrant));
+                    channel.pipeline().addLast(new RpcCallHandler(registrant, asyncPool));
                 }
             });
 
@@ -92,6 +99,10 @@ public class ProducerApp implements Runnable {
     }
 
     public <T> ProducerApp register(Class<T> serviceClass, String version, T serviceImpl) {
+        return register(serviceClass, version, serviceImpl, HandlingStrategy.SYNC);
+    }
+
+    public <T> ProducerApp register(Class<T> serviceClass, String version, T serviceImpl, HandlingStrategy handlingStrategy) {
         if (serviceClass == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
@@ -101,8 +112,11 @@ public class ProducerApp implements Runnable {
         if (serviceImpl == null) {
             throw new IllegalArgumentException("service implementation should not be null.");
         }
+        if (handlingStrategy == null) {
+            throw new IllegalArgumentException("handling strategy should not be null.");
+        }
 
-        registrant.register(serviceClass, version, serviceImpl);
+        registrant.register(serviceClass, version, serviceImpl, handlingStrategy);
         return this;
     }
 }
