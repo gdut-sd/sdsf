@@ -12,7 +12,7 @@ public class App {
         ConsumerAppConfiguration config = new ConsumerAppConfiguration();
         config.setSerializationStrategy(SerializationStrategy.JBOSS_MARSHALLING);
         ConsumerApp app = new ConsumerApp(config);
-        UserService userService = app.getService(UserService.class, "0.0.1");
+        UserService userService = app.getService(UserService.class, "0.0.1", 1000);
         System.out.println(userService.getUser(101));
         //Thread.sleep(10000);
         System.out.println(userService.getUser(102));

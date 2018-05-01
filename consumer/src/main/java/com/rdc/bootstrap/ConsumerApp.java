@@ -28,13 +28,17 @@ public class ConsumerApp {
         registrant = new Registrant(config.getRegistrantHost(), config.getRegistrantPort());
     }
 
-    public <T> T getService(Class<T> serviceClazz, String version) {
+    public <T> T getService(Class<T> serviceClazz, String version, int timeoutMillis) {
         if (serviceClazz == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
         if (version == null) {
             throw new IllegalArgumentException("version should not be null.");
         }
-        return ProxyCreator.getProxy(serviceClazz, version, config.getProxyStrategy(), config.getLoadBalanceStrategy(), connectionCenter, registrant);
+        if (timeoutMillis <= 0) {
+            throw new IllegalArgumentException("timeout should not be negative.");
+        }
+
+        return ProxyCreator.getProxy(serviceClazz, version, config.getProxyStrategy(), config.getLoadBalanceStrategy(), connectionCenter, registrant, config.getAutoRetryTimes(), timeoutMillis);
     }
 }

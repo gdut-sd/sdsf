@@ -9,7 +9,14 @@ import com.rdc.loadbalance.LoadBalanceStrategy;
  */
 public class ProxyCreator {
 
-    public static <T> T getProxy(Class<T> serviceClass, String version, ProxyStrategy proxyStrategy, LoadBalanceStrategy loadBalanceStrategy, ConnectionCenter connectionCenter, Registrant registrant) {
+    public static <T> T getProxy(Class<T> serviceClass,
+                                 String version,
+                                 ProxyStrategy proxyStrategy,
+                                 LoadBalanceStrategy loadBalanceStrategy,
+                                 ConnectionCenter connectionCenter,
+                                 Registrant registrant,
+                                 int autoRetryTimes,
+                                 int timeoutMillis) {
         if (serviceClass == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
@@ -19,9 +26,15 @@ public class ProxyCreator {
         if (registrant == null) {
             throw new IllegalArgumentException("registrant should not be null.");
         }
+        if (autoRetryTimes < 0 || autoRetryTimes > 100) {
+            throw new IllegalArgumentException("auto retry time should be within 0 and 100");
+        }
+        if (timeoutMillis <= 0) {
+            throw new IllegalArgumentException("timeout should not be negative.");
+        }
 
         if (proxyStrategy == ProxyStrategy.JDK_DEFAULT) {
-            return new JdkDynamicProxyInvoker<>(serviceClass, version, connectionCenter, registrant, loadBalanceStrategy).get();
+            return new JdkDynamicProxyInvoker<>(serviceClass, version, connectionCenter, registrant, loadBalanceStrategy, autoRetryTimes, timeoutMillis).get();
         }
 
         return null;
