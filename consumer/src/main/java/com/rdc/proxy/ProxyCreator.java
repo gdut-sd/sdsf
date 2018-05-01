@@ -33,10 +33,13 @@ public class ProxyCreator {
             throw new IllegalArgumentException("timeout should not be negative.");
         }
 
-        if (proxyStrategy == ProxyStrategy.JDK_DEFAULT) {
-            return new JdkDynamicProxyInvoker<>(serviceClass, version, connectionCenter, registrant, loadBalanceStrategy, autoRetryTimes, timeoutMillis).get();
+        switch (proxyStrategy) {
+            case JDK_DEFAULT:
+                return new JdkDynamicProxyInvoker<>(serviceClass, version, connectionCenter, registrant, loadBalanceStrategy, autoRetryTimes, timeoutMillis).get();
+            case CGLIB:
+                return new CglibProxyInvoker<>(serviceClass, version, connectionCenter, registrant, loadBalanceStrategy, autoRetryTimes, timeoutMillis).get();
+            default:
+                return null;
         }
-
-        return null;
     }
 }
