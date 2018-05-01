@@ -30,8 +30,10 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
 
     private int autoRetryTimes;
 
+    private int timeoutMillis;
+
     @SuppressWarnings("unchecked")
-    public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant, LoadBalanceStrategy loadBalanceStrategy, int autoRetryTimes) {
+    public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant, LoadBalanceStrategy loadBalanceStrategy, int autoRetryTimes, int timeoutMillis) {
         if (ic == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
@@ -44,9 +46,13 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
         if (autoRetryTimes < 0 || autoRetryTimes > 100) {
             throw new IllegalArgumentException("auto retry time should be within 0 and 100");
         }
+        if (timeoutMillis <= 0) {
+            throw new IllegalArgumentException("timeout should not be negative.");
+        }
 
         this.ic = ic;
         this.autoRetryTimes = autoRetryTimes;
+        this.timeoutMillis = timeoutMillis;
         this.version = version;
         Class<I>[] ics = new Class[]{ic};
         proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), ics, this);
@@ -97,7 +103,7 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
 
     private Object send(String interfaceName, String version, RpcMessage rpcMessage) throws Exception {
         Future<Object> result = router.send(interfaceName, version, rpcMessage);
-        return result.get(5000, TimeUnit.MILLISECONDS);
+        return result.get(timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
