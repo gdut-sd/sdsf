@@ -28,8 +28,10 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
 
     private Router router;
 
+    private int autoRetryTimes;
+
     @SuppressWarnings("unchecked")
-    public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant, LoadBalanceStrategy loadBalanceStrategy) {
+    public JdkDynamicProxyInvoker(Class<I> ic, String version, ConnectionCenter connectionCenter, Registrant registrant, LoadBalanceStrategy loadBalanceStrategy, int autoRetryTimes) {
         if (ic == null) {
             throw new IllegalArgumentException("service class should not be null.");
         }
@@ -39,8 +41,12 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
         if (registrant == null) {
             throw new IllegalArgumentException("registrant should not be null.");
         }
+        if (autoRetryTimes < 0 || autoRetryTimes > 100) {
+            throw new IllegalArgumentException("auto retry time should be within 0 and 100");
+        }
 
         this.ic = ic;
+        this.autoRetryTimes = autoRetryTimes;
         this.version = version;
         Class<I>[] ics = new Class[]{ic};
         proxyInstance = (I) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), ics, this);
@@ -75,14 +81,23 @@ public class JdkDynamicProxyInvoker<I> implements InvocationHandler, Supplier<I>
         rpcMessage.setBody(request);
 
         // 2. send rpc request and wait for result(Future#get)
-        Future<Object> result = router.send(request.getInterfaceName(), request.getVersion(), rpcMessage);
 
         // 3. return result
-        try {
-            return result.get(5000, TimeUnit.MILLISECONDS);
-        } catch (ExecutionException e) {
-            throw e.getCause();
+        for (int i = 0; i < autoRetryTimes; i++) {
+            try {
+                send(request.getInterfaceName(), request.getVersion(), rpcMessage);
+            } catch (Exception e) {
+                // ignore and retry
+            }
         }
+
+        // do not retry any more
+        return send(request.getInterfaceName(), request.getVersion(), rpcMessage);
+    }
+
+    private Object send(String interfaceName, String version, RpcMessage rpcMessage) throws Exception {
+        Future<Object> result = router.send(interfaceName, version, rpcMessage);
+        return result.get(5000, TimeUnit.MILLISECONDS);
     }
 
     @Override

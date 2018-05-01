@@ -35,6 +35,6 @@ public class ConsumerApp {
         if (version == null) {
             throw new IllegalArgumentException("version should not be null.");
         }
-        return ProxyCreator.getProxy(serviceClazz, version, config.getProxyStrategy(), config.getLoadBalanceStrategy(), connectionCenter, registrant);
+        return ProxyCreator.getProxy(serviceClazz, version, config.getProxyStrategy(), config.getLoadBalanceStrategy(), connectionCenter, registrant, config.getAutoRetryTimes());
     }
 }

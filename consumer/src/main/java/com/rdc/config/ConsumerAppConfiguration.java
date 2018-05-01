@@ -21,6 +21,8 @@ public class ConsumerAppConfiguration {
 
     private LoadBalanceStrategy loadBalanceStrategy = LoadBalanceStrategy.ROUND_ROBIN;
 
+    private int autoRetryTimes = 3;
+
     public int getWorkerGroupThreads() {
         return workerGroupThreads;
     }
@@ -84,6 +86,18 @@ public class ConsumerAppConfiguration {
             throw new IllegalArgumentException("load balance strategy should not be null.");
         }
         this.loadBalanceStrategy = loadBalanceStrategy;
+        return this;
+    }
+
+    public int getAutoRetryTimes() {
+        return autoRetryTimes;
+    }
+
+    public ConsumerAppConfiguration setAutoRetryTimes(int autoRetryTimes) {
+        if (autoRetryTimes < 0 || autoRetryTimes > 100) {
+            throw new IllegalArgumentException("auto retry time should be within 0 and 100");
+        }
+        this.autoRetryTimes = autoRetryTimes;
         return this;
     }
 }
