@@ -1,6 +1,7 @@
 package com.rdc.model;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author SD
@@ -79,5 +80,17 @@ public class RpcCallRequest implements Serializable {
 
     public void setArgs(Object[] args) {
         this.args = args;
+    }
+
+    @Override
+    public String toString() {
+        return "RpcCallRequest{" +
+                "rpcCallId=" + rpcCallId +
+                ", interfaceName='" + interfaceName + '\'' +
+                ", methodName='" + methodName + '\'' +
+                ", version='" + version + '\'' +
+                ", parameterTypes=" + Arrays.toString(parameterTypes) +
+                ", args=" + Arrays.toString(args) +
+                '}';
     }
 }

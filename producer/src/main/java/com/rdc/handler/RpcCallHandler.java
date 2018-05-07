@@ -31,7 +31,6 @@ public class RpcCallHandler extends SimpleChannelInboundHandler<RpcMessage> {
     protected void channelRead0(ChannelHandlerContext ctx, RpcMessage rpcMessage) {
         System.out.println(rpcMessage);
         RpcCallRequest request = (RpcCallRequest) rpcMessage.getBody();
-        System.out.println(request.getInterfaceName());
 
         HandlingStrategy handlingStrategy = registrant.getProducerHandlingStrategy(request.getInterfaceName(), request.getVersion());
         switch (handlingStrategy) {

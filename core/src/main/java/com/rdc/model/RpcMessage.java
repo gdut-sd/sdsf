@@ -9,8 +9,6 @@ public class RpcMessage implements Serializable {
 
     private static final long serialVersionUID = -1544933624460288374L;
 
-    private long sessionId;
-
     private long rpcCallId;
 
     private boolean success;
@@ -20,18 +18,9 @@ public class RpcMessage implements Serializable {
     public RpcMessage() {
     }
 
-    public RpcMessage(long sessionId, long rpcCallId, Object body) {
-        this.sessionId = sessionId;
+    public RpcMessage(long rpcCallId, Object body) {
         this.rpcCallId = rpcCallId;
         this.body = body;
-    }
-
-    public long getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(long sessionId) {
-        this.sessionId = sessionId;
     }
 
     public long getRpcCallId() {
@@ -56,5 +45,14 @@ public class RpcMessage implements Serializable {
 
     public void setSuccess(boolean success) {
         this.success = success;
+    }
+
+    @Override
+    public String toString() {
+        return "RpcMessage{" +
+                "rpcCallId=" + rpcCallId +
+                ", success=" + success +
+                ", body=" + body +
+                '}';
     }
 }
